@@ -1,0 +1,12 @@
+---
+openvpn_users:
+  - name: "client1"
+    state: "active"
+  - name: "client2" 
+    state: "active"
+  - name: "client3"
+    state: "active"
+
+openvpn_port: 1195
+nginx_port: 80
+ovpn_config_path: "/var/www/ovpn-configs"

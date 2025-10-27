@@ -1,0 +1,76 @@
+---
+- name: Install OpenVPN dependencies
+  apt:
+    name:
+      - openvpn
+      - wget
+      - curl
+      - net-tools
+    state: present
+    update_cache: yes
+
+- name: Download OpenVPN install script
+  get_url:
+    url: "https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh"
+    dest: /tmp/openvpn-install.sh
+    mode: '0755'
+
+- name: Remove old OpenVPN config (if any)
+  file:
+    path: /etc/openvpn
+    state: absent
+  become: yes
+  ignore_errors: yes
+
+- name: Install OpenVPN server non-interactively
+  shell: |
+    AUTO_INSTALL=y \
+    APPROVE_INSTALL=y \
+    APPROVE_IP=y \
+    IPV6_SUPPORT=n \
+    PORT_CHOICE=2 \
+    PORT={{ openvpn_port }} \
+    PROTOCOL=1 \
+    DNS=1 \
+    COMPRESSION_ENABLED=n \
+    CUSTOMIZE_ENC=n \
+    CLIENT=client \
+    PASS=1 \
+    /tmp/openvpn-install.sh
+  args:
+    executable: /bin/bash
+    creates: /etc/openvpn/server.conf
+  become: yes
+
+- name: Ensure correct port in OpenVPN config
+  lineinfile:
+    path: /etc/openvpn/server.conf
+    regexp: '^port '
+    line: "port {{ openvpn_port }}"
+  become: yes
+
+- name: Start OpenVPN service
+  systemd:
+    name: openvpn@server
+    state: restarted
+    enabled: yes
+  become: yes
+
+- name: Generate OpenVPN client configs
+  shell: |
+    for client in client1 client2 client3; do
+      echo -e "1\n$client\n1\n" | /tmp/openvpn-install.sh
+    done
+  args:
+    executable: /bin/bash
+  become: yes
+
+- name: Copy generated client configs to web directory
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ovpn_config_path }}/{{ item | basename }}"
+    remote_src: yes
+    mode: '0644'
+  loop: "{{ lookup('fileglob', '/root/*.ovpn', wantlist=True) }}"
+  become: yes
+

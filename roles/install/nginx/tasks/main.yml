@@ -1,0 +1,33 @@
+---
+- name: Ensure FileBrowser config directory exists
+  file:
+    path: "{{ ovpn_config_path }}"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Remove any existing FileBrowser container
+  docker_container:
+    name: filebrowser
+    state: absent
+  ignore_errors: yes
+
+- name: Pull FileBrowser Docker image
+  docker_image:
+    name: filebrowser/filebrowser
+    tag: latest
+    source: pull
+
+- name: Run FileBrowser container
+  docker_container:
+    name: filebrowser
+    image: filebrowser/filebrowser:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "{{ nginx_port }}:80"
+    volumes:
+      - "{{ ovpn_config_path }}:/srv"
+    command: --noauth --root /srv
+
+

@@ -1,0 +1,14 @@
+---
+
+- name: Install openvpn and nginx 
+  hosts: localhost 
+  become: yes 
+  vars: 
+    openvpn_port: 1195
+    nginx_port: 80
+    ovpn_config_path: "/var/www/ovpn-configs"
+
+  roles: 
+    - install/docker
+    - install/openvpn
+    - install/nginx  
