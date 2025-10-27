@@ -12,13 +12,13 @@ set -e
 
 echo "[INFO] Creating ansible structure"
 
-# Основные директории
+# main directories 
 sudo mkdir -p /etc/ansible/{roles,playbooks,files,templates,group_vars,host_vars}
 
 sudo touch /etc/ansible/{inventory,ansible.cfg}
 sudo touch /etc/ansible/playbooks/site.yml
 
-# Роли и подпапки
+# roles and folders
 for role in docker nginx openvpn; do
   sudo mkdir -p /etc/ansible/roles/install/$role/{tasks,handlers,templates,defaults,meta}
   sudo touch /etc/ansible/roles/install/$role/{tasks,handlers,templates,defaults,meta}/main.yml
